@@ -67,8 +67,7 @@
 
     .post-item {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
       background-color: #f0fbff;
       border: 1px solid #d0f0ff;
       border-radius: 10px;
@@ -76,6 +75,23 @@
       margin-bottom: 10px;
       position: relative;
       animation: fadeSlideIn 0.5s ease;
+    }
+
+    .post-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .post-text {
+      flex: 1;
+    }
+
+    .timestamp {
+      font-size: 12px;
+      color: gray;
+      margin-top: 5px;
+      align-self: flex-start;
     }
 
     @keyframes fadeSlideIn {
@@ -125,6 +141,16 @@
   </div>
 
   <script>
+    function getCurrentTimestamp() {
+      const now = new Date();
+      const yy = String(now.getFullYear()).slice(2);
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      return `${yy}/${mm}/${dd} ${hh}:${min}`;
+    }
+
     function addPost() {
       const input = document.getElementById('postInput');
       const postList = document.getElementById('postList');
@@ -133,17 +159,27 @@
         const newPost = document.createElement('div');
         newPost.className = 'post-item';
 
+        const postContent = document.createElement('div');
+        postContent.className = 'post-content';
+
         const postText = document.createElement('span');
+        postText.className = 'post-text';
         postText.textContent = input.value;
-        postText.style.flex = '1';
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
         deleteBtn.innerHTML = '🗑️';
         deleteBtn.onclick = () => newPost.remove();
 
-        newPost.appendChild(postText);
-        newPost.appendChild(deleteBtn);
+        postContent.appendChild(postText);
+        postContent.appendChild(deleteBtn);
+
+        const timestamp = document.createElement('div');
+        timestamp.className = 'timestamp';
+        timestamp.textContent = getCurrentTimestamp();
+
+        newPost.appendChild(postContent);
+        newPost.appendChild(timestamp);
         postList.prepend(newPost);
 
         input.value = '';

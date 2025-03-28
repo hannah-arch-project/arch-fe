@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>게시판</title>
   <style>
     body {
@@ -33,7 +33,7 @@
     }
 
     input[type="text"] {
-      width: calc(100% - 4px); /* 좌우 여백 고려 */
+      width: calc(100% - 4px);
       padding: 10px;
       margin-top: 10px;
       border: 2px solid #a0e4ff;
@@ -94,17 +94,6 @@
       align-self: flex-start;
     }
 
-    @keyframes fadeSlideIn {
-      0% {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
     .delete-btn {
       background: none;
       border: none;
@@ -117,6 +106,17 @@
     .delete-btn:hover {
       background: none;
       animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes fadeSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @keyframes shake {
@@ -141,6 +141,8 @@
   </div>
 
   <script>
+    const API_BASE = "https://www.shndh.kro.kr";
+
     function getCurrentTimestamp() {
       const now = new Date();
       const yy = String(now.getFullYear()).slice(2);
@@ -151,11 +153,38 @@
       return `${yy}/${mm}/${dd} ${hh}:${min}`;
     }
 
-    function addPost() {
+    async function addPost() {
       const input = document.getElementById('postInput');
-      const postList = document.getElementById('postList');
+      const content = input.value.trim();
+      const timestamp = getCurrentTimestamp();
 
-      if (input.value.trim() !== '') {
+      if (content !== '') {
+        await fetch(`${API_BASE}/posts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, timestamp })
+        });
+
+        input.value = '';
+        loadPosts();
+      }
+    }
+
+    async function deletePost(id) {
+      await fetch(`${API_BASE}/posts/${id}`, {
+        method: 'DELETE'
+      });
+      loadPosts();
+    }
+
+    async function loadPosts() {
+      const postList = document.getElementById('postList');
+      postList.innerHTML = '';
+
+      const res = await fetch(`${API_BASE}/posts`);
+      const posts = await res.json();
+
+      posts.forEach(({ id, content, timestamp }) => {
         const newPost = document.createElement('div');
         newPost.className = 'post-item';
 
@@ -164,27 +193,27 @@
 
         const postText = document.createElement('span');
         postText.className = 'post-text';
-        postText.textContent = input.value;
+        postText.textContent = content;
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
         deleteBtn.innerHTML = '🗑️';
-        deleteBtn.onclick = () => newPost.remove();
+        deleteBtn.onclick = () => deletePost(id);
 
         postContent.appendChild(postText);
         postContent.appendChild(deleteBtn);
 
-        const timestamp = document.createElement('div');
-        timestamp.className = 'timestamp';
-        timestamp.textContent = getCurrentTimestamp();
+        const time = document.createElement('div');
+        time.className = 'timestamp';
+        time.textContent = timestamp;
 
         newPost.appendChild(postContent);
-        newPost.appendChild(timestamp);
-        postList.prepend(newPost);
-
-        input.value = '';
-      }
+        newPost.appendChild(time);
+        postList.appendChild(newPost);
+      });
     }
+
+    window.onload = loadPosts;
   </script>
 </body>
 </html>
